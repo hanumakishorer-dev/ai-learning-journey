@@ -33,7 +33,7 @@ jobs:
       - name: Run AI Review
         run: python ai_review.py
         env:
-          OPENAI_API_KEY: ${{ secrets.WINDSURF_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       # ✅ Post review as PR comment
       - name: Post PR Comment
