@@ -1,0 +1,51 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ✅ Checkout repository code
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # ✅ Get PR diff
+      - name: Get PR diff
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git diff origin/${{ github.event.pull_request.base.ref }} > diff.txt
+
+      # ✅ Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # ✅ Install OpenAI SDK
+      - name: Install dependencies
+        run: pip install openai
+
+      # ✅ Run AI review script
+      - name: Run AI Review
+        run: python ai_review.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.WINDSURF_API_KEY }}
+
+      # ✅ Post review as PR comment
+      - name: Post PR Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('review.txt', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: review
+            });
