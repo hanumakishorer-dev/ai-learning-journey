@@ -1,39 +1,47 @@
 import os
 from openai import OpenAI
 
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+# ✅ Initialize client for Windsurf (IMPORTANT: base_url)
+client = OpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    base_url="https://api.windsurf.ai/v1"   # ✅ Windsurf endpoint
+)
 
-# Read diff
+# ✅ Read PR diff
 with open("diff.txt", "r") as f:
     diff = f.read()
 
-# Limit size (important!)
+# ✅ Limit size
 diff = diff[:15000]
 
+# ✅ Prompt
 prompt = f"""
-You are a senior software engineer doing a pull request review.
+You are a senior software engineer reviewing a pull request.
 
-Analyze the following git diff and provide:
+Focus on:
+- Bugs
+- Security issues
+- Performance issues
 
-1. Bugs or risks
-2. Security issues
-3. Performance concerns
-4. Code quality improvements
-
-Give concise, actionable feedback.
-Do NOT repeat the code.
+Be concise and actionable.
 
 Diff:
 {diff}
 """
 
+# ✅ Call model (model name may differ in Windsurf)
 response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": prompt}]
+    model="gpt-4o-mini",   # ⚠️ If this fails, see note below
+    messages=[
+        {"role": "user", "content": prompt}
+    ]
 )
 
+# ✅ Extract result
 review = response.choices[0].message.content
 
-# Save review
+# ✅ Save output
 with open("review.txt", "w") as f:
     f.write(review)
+
+print("✅ AI review completed successfully")
